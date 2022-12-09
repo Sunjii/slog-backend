@@ -28,8 +28,21 @@ export class UsersService {
     return `This action returns all users`;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  async findOne(id: number) {
+    try {
+      const user = await this.users.findOneByOrFail({ id });
+      console.log(user);
+      return user;
+      // return {
+      //   ok: true,
+      //   user,
+      // };
+    } catch (e) {
+      return {
+        ok: false,
+        error: 'User Not Found',
+      };
+    }
   }
 
   update(id: number, updateUserInput: UpdateUserInput) {

@@ -1,13 +1,20 @@
-import { BeforeInsert, Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  BeforeInsert,
+  Column,
+  CreateDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import * as argon2 from 'argon2';
-import { Field, ObjectType } from '@nestjs/graphql';
+import { Field, InputType, ObjectType } from '@nestjs/graphql';
 
+@InputType({ isAbstract: true })
 @ObjectType()
 @Entity()
 export class UserEntity {
   @PrimaryGeneratedColumn()
   @Field((type) => String)
-  id: string;
+  id: number;
 
   @Column({ length: 32 })
   @Field((type) => String)
@@ -26,6 +33,11 @@ export class UserEntity {
     this.password = await argon2.hash(this.password);
   }
 
-  @Column({ default: '' })
-  imageLink: string;
+  @CreateDateColumn()
+  @Field((type) => Date)
+  createdAt: Date;
+
+  @CreateDateColumn()
+  @Field((type) => Date)
+  updatedAt: Date;
 }

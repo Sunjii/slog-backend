@@ -18,10 +18,10 @@ export class UsersResolver {
     return this.usersService.findAll();
   }
 
-  // @Query('user')
-  // findOne(@Args('id') id: number) {
-  //   return this.usersService.findOne(id);
-  // }
+  @Query((returns) => UserEntity)
+  findOne(@Args('id') id: number) {
+    return this.usersService.findOne(id);
+  }
 
   // @Mutation('updateUser')
   // update(@Args('updateUserInput') updateUserInput: UpdateUserInput) {

@@ -5,6 +5,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { ApolloDriver } from '@nestjs/apollo';
+import { UserEntity } from './users/entities/user.entity';
 
 @Module({
   imports: [
@@ -16,7 +17,8 @@ import { ApolloDriver } from '@nestjs/apollo';
       username: 'postgres',
       password: '1234',
       database: 'slog',
-      entities: ['dist/**/**.entity{.ts,.js}'],
+      entities: [UserEntity],
+      logging: true,
       synchronize: true,
     }),
     GraphQLModule.forRoot({
