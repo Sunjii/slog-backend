@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserInput } from './dto/update-user.dto';
+import { CreateUserInput } from './dto/create-user.dto';
 import { UserEntity } from './entities/user.entity';
 import { UserRepository } from './users.repository';
 
@@ -13,12 +12,12 @@ export class UsersService {
     private readonly users: Repository<UserEntity>,
   ) {}
 
-  async create(createUserDto: CreateUserDto) {
+  async createUser(createUserDto: CreateUserInput) {
     const { username, email, password } = createUserDto;
 
     const exist = await this.users.findOneBy({ email });
     if (exist) {
-      return 'no';
+      return { ok: false, error: 'Already' };
     }
 
     return 'This action adds a new user';
@@ -43,10 +42,6 @@ export class UsersService {
         error: 'User Not Found',
       };
     }
-  }
-
-  update(id: number, updateUserInput: UpdateUserInput) {
-    return `This action updates a #${id} user`;
   }
 
   remove(id: number) {
