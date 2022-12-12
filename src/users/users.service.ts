@@ -20,7 +20,12 @@ export class UsersService {
       return { ok: false, error: 'Already' };
     }
 
-    return 'This action adds a new user';
+    const user = await this.users.save(
+      this.users.create({ email, password, username }),
+    );
+    // verification ?
+
+    return { ok: true, message: 'Done!' };
   }
 
   findAll() {
