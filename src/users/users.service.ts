@@ -17,7 +17,7 @@ export class UsersService {
 
     const exist = await this.users.findOneBy({ email });
     if (exist) {
-      return { ok: false, error: 'Already' };
+      return { ok: false, error: '이미 가입된 이메일입니다.' };
     }
 
     const user = await this.users.save(
