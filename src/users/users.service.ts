@@ -1,15 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { JwtService } from 'src/jwt/jwt.service';
 import { Repository } from 'typeorm';
 import { CreateUserInput } from './dto/create-user.dto';
+import { LoginInput, LoginOutput } from './dto/login.dto';
 import { UserEntity } from './entities/user.entity';
-import { UserRepository } from './users.repository';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(UserEntity)
     private readonly users: Repository<UserEntity>,
+    private readonly jwtService: JwtService,
   ) {}
 
   async createUser(createUserDto: CreateUserInput) {
@@ -28,23 +30,48 @@ export class UsersService {
     return { ok: true, message: 'Done!' };
   }
 
-  findAll() {
-    return `This action returns all users`;
-  }
-
   async findOne(id: number) {
     try {
       const user = await this.users.findOneByOrFail({ id });
-      console.log(user);
-      return user;
-      // return {
-      //   ok: true,
-      //   user,
-      // };
+      return {
+        ok: true,
+        user,
+      };
     } catch (e) {
       return {
         ok: false,
         error: 'User Not Found',
+      };
+    }
+  }
+
+  async login({ email, password }: LoginInput): Promise<LoginOutput> {
+    try {
+      const user = await this.users.findOneBy({ email });
+      if (!user) {
+        return {
+          ok: false,
+          error: '존재하지 않는 계정입니다.',
+        };
+      }
+
+      const passwordCorrect = await user.checkPassword(password);
+      if (!passwordCorrect) {
+        return {
+          ok: false,
+          error: '비밀번호가 틀렸습니다.',
+        };
+      }
+      const token = this.jwtService.sign(user.id);
+      return {
+        ok: true,
+        token,
+      };
+    } catch (e) {
+      console.log(e);
+      return {
+        ok: false,
+        error: '로그인 실패',
       };
     }
   }
