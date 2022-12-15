@@ -1,12 +1,14 @@
 import {
   BeforeInsert,
+  BeforeUpdate,
   Column,
   CreateDateColumn,
   Entity,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import * as argon2 from 'argon2';
+import * as bcrypt from 'bcrypt';
 import { Field, InputType, ObjectType } from '@nestjs/graphql';
+import { InternalServerErrorException } from '@nestjs/common';
 
 @InputType({ isAbstract: true })
 @ObjectType()
@@ -29,8 +31,25 @@ export class UserEntity {
   password: string;
 
   @BeforeInsert()
-  async hashPassword() {
-    this.password = await argon2.hash(this.password);
+  @BeforeUpdate()
+  async hashPassword(): Promise<void> {
+    if (this.password) {
+      try {
+        this.password = await bcrypt.hash(this.password, 10);
+      } catch (e) {
+        console.log(e);
+        throw new InternalServerErrorException();
+      }
+    }
+  }
+  async checkPassword(aPAssword: string): Promise<boolean> {
+    try {
+      const ok = await bcrypt.compare(aPAssword, this.password);
+      return ok;
+    } catch (e) {
+      console.log(e);
+      throw new InternalServerErrorException();
+    }
   }
 
   @CreateDateColumn()
