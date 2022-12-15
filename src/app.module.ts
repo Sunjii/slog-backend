@@ -6,6 +6,7 @@ import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { ApolloDriver } from '@nestjs/apollo';
 import { UserEntity } from './users/entities/user.entity';
+import { JwtModule } from './jwt/jwt.module';
 
 @Module({
   imports: [
@@ -19,11 +20,16 @@ import { UserEntity } from './users/entities/user.entity';
       database: 'slog',
       entities: [UserEntity],
       logging: true,
-      synchronize: true,
+      synchronize: false, // true: 수정된 칼럼, 타입 등등은 테이블을 drop시키고 다시 생성하도록 함
     }),
     GraphQLModule.forRoot({
       driver: ApolloDriver,
       autoSchemaFile: true,
+      context: ({ req }) => ({ user: req['user'] }),
+    }),
+    JwtModule.forRoot({
+      privateKey: 'magic',
+      //privateKey: process.env.PRIVATE_KEY,
     }),
   ],
   // controllers: [AppController],
