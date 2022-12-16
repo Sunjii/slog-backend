@@ -8,6 +8,7 @@ import { UsersService } from './users.service';
 // mocking with Repository
 const mockRepository = () => ({
   findOneBy: jest.fn(),
+  findOne: jest.fn(),
   save: jest.fn(),
   create: jest.fn(),
   findOneOrFail: jest.fn(),
@@ -71,10 +72,8 @@ describe('UsersService', () => {
       usersRepository.findOneBy.mockResolvedValue(null);
       const result = await service.login(loginArgs);
 
-      expect(usersRepository.findOneBy).toHaveBeenCalledTimes(1);
-      expect(usersRepository.findOneBy).toHaveBeenCalledWith(
-        expect.any(Object),
-      );
+      expect(usersRepository.findOne).toHaveBeenCalledTimes(1);
+      expect(usersRepository.findOne).toHaveBeenCalledWith(expect.any(Object));
       expect(result).toEqual({ ok: false, error: '존재하지 않는 계정입니다.' });
     });
   });

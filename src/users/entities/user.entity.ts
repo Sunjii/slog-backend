@@ -26,7 +26,7 @@ export class UserEntity {
   @Field((type) => String)
   email: string;
 
-  @Column({ length: 32 })
+  @Column({ select: false })
   @Field((type) => String)
   password: string;
 
