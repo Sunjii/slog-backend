@@ -4,6 +4,7 @@ import { JwtService } from 'src/jwt/jwt.service';
 import { Repository } from 'typeorm';
 import { CreateUserInput } from './dto/create-user.dto';
 import { LoginInput, LoginOutput } from './dto/login.dto';
+import { UserProfileOutput } from './dto/user-profile.dto';
 import { UserEntity } from './entities/user.entity';
 
 @Injectable()
@@ -30,9 +31,10 @@ export class UsersService {
     return { ok: true, message: 'Done!' };
   }
 
-  async findOne(id: number) {
+  async findOne(id: number): Promise<UserProfileOutput> {
     try {
       const user = await this.users.findOneByOrFail({ id });
+      console.log(user);
       return {
         ok: true,
         user,
@@ -47,7 +49,11 @@ export class UsersService {
 
   async login({ email, password }: LoginInput): Promise<LoginOutput> {
     try {
-      const user = await this.users.findOneBy({ email });
+      const user = await this.users.findOne({
+        where: { email },
+        select: ['id', 'password'],
+      });
+
       if (!user) {
         return {
           ok: false,
