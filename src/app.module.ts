@@ -7,6 +7,8 @@ import { UsersModule } from './users/users.module';
 import { ApolloDriver } from '@nestjs/apollo';
 import { UserEntity } from './users/entities/user.entity';
 import { JwtModule } from './jwt/jwt.module';
+import { PostModule } from './post/post.module';
+import { PostEntity } from './post/entities/post.entity';
 
 @Module({
   imports: [
@@ -18,7 +20,7 @@ import { JwtModule } from './jwt/jwt.module';
       username: 'postgres',
       password: '1234',
       database: 'slog',
-      entities: [UserEntity],
+      entities: [UserEntity, PostEntity],
       logging: true,
       synchronize: false, // true: 수정된 칼럼, 타입 등등은 테이블을 drop시키고 다시 생성하도록 함
     }),
@@ -31,6 +33,7 @@ import { JwtModule } from './jwt/jwt.module';
       privateKey: 'magic',
       //privateKey: process.env.PRIVATE_KEY,
     }),
+    PostModule,
   ],
   // controllers: [AppController],
   // providers: [AppService],
