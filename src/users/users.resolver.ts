@@ -3,7 +3,7 @@ import { UsersService } from './users.service';
 import { CreateUserInput, CreateUserOutput } from './dto/create-user.dto';
 import { UserEntity } from './entities/user.entity';
 import { LoginInput, LoginOutput } from './dto/login.dto';
-import { UserProfileOutput } from './dto/user-profile.dto';
+import { UserProfileInput, UserProfileOutput } from './dto/user-profile.dto';
 
 @Resolver((of) => UserEntity)
 export class UsersResolver {
@@ -14,9 +14,11 @@ export class UsersResolver {
     return this.usersService.createUser(createUserInput);
   }
 
-  @Query((returns) => UserEntity, { name: 'findOneAcc' })
-  findOne(@Args('id') id: number): Promise<UserProfileOutput> {
-    return this.usersService.findOne(id);
+  @Query((returns) => UserProfileOutput, { name: 'findOneAcc' })
+  findOne(
+    @Args() userProfileInput: UserProfileInput,
+  ): Promise<UserProfileOutput> {
+    return this.usersService.findOne(userProfileInput.userId);
   }
 
   @Mutation((returns) => LoginOutput)
