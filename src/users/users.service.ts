@@ -33,7 +33,8 @@ export class UsersService {
 
   async findOne(id: number): Promise<UserProfileOutput> {
     try {
-      const user = await this.users.findOne({
+      // 문법이 조금 바뀜
+      const user = await this.users.findOneOrFail({
         where: {
           id: id,
         },
