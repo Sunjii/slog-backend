@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from 'src/users/entities/user.entity';
 import { Repository } from 'typeorm';
 import { AllPostsInput, AllPostsOutput } from './dto/all-posts.dto';
-import { CreatePostInput } from './dto/create-post.input';
+import { CreatePostInput, CreatePostOutput } from './dto/create-post.input';
 import { PostOutput } from './dto/post-output.dto';
 import { UpdatePostInput } from './dto/update-post.input';
 import { PostEntity } from './entities/post.entity';
@@ -16,12 +16,15 @@ export class PostService {
     private readonly posts: Repository<PostEntity>,
   ) {}
 
-  async create(user: UserEntity, createPostInput: CreatePostInput) {
+  async create(
+    user: UserEntity,
+    createPostInput: CreatePostInput,
+  ): Promise<CreatePostOutput> {
     try {
-      console.log(user);
       if (user === undefined) {
         throw new Error('작성자 정보가 없습니다');
       }
+
       const newPost = this.posts.create(createPostInput);
       newPost.user = user;
 

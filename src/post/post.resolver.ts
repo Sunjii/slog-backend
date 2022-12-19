@@ -7,12 +7,14 @@ import { PostOutput } from './dto/post-output.dto';
 import { AllPostsInput, AllPostsOutput } from './dto/all-posts.dto';
 import { UserEntity } from 'src/users/entities/user.entity';
 import { AuthUser } from 'src/auth/auth-user.decorator';
+import { Role } from 'src/auth/role.decorator';
 
 @Resolver((of) => PostEntity)
 export class PostResolver {
   constructor(private readonly postService: PostService) {}
 
   @Mutation((returns) => CreatePostOutput)
+  @Role(['Owner', 'Admin'])
   async createPost(
     @AuthUser() authUser: UserEntity,
     @Args('createPostInput') createPostInput: CreatePostInput,
