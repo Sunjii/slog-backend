@@ -16,7 +16,7 @@ export class UsersService {
   ) {}
 
   async createUser(createUserDto: CreateUserInput) {
-    const { username, email, password } = createUserDto;
+    const { username, email, password, role } = createUserDto;
 
     const exist = await this.users.findOneBy({ email });
     if (exist) {
@@ -24,7 +24,7 @@ export class UsersService {
     }
 
     const user = await this.users.save(
-      this.users.create({ email, password, username }),
+      this.users.create({ email, password, username, role }),
     );
     // verification ?
 
@@ -78,7 +78,6 @@ export class UsersService {
         token,
       };
     } catch (e) {
-      console.log(e);
       return {
         ok: false,
         error: '로그인 실패',
