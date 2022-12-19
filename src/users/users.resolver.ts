@@ -4,6 +4,8 @@ import { CreateUserInput, CreateUserOutput } from './dto/create-user.dto';
 import { UserEntity } from './entities/user.entity';
 import { LoginInput, LoginOutput } from './dto/login.dto';
 import { UserProfileInput, UserProfileOutput } from './dto/user-profile.dto';
+import { AuthUser } from 'src/auth/auth-user.decorator';
+import { Role } from 'src/auth/role.decorator';
 
 @Resolver((of) => UserEntity)
 export class UsersResolver {
@@ -24,6 +26,12 @@ export class UsersResolver {
   @Mutation((returns) => LoginOutput)
   async login(@Args('input') loginInput: LoginInput): Promise<LoginOutput> {
     return this.usersService.login(loginInput);
+  }
+
+  @Query((returns) => UserEntity)
+  @Role(['Any'])
+  me(@AuthUser() authUser: UserEntity) {
+    return authUser;
   }
 
   // @Mutation('updateUser')

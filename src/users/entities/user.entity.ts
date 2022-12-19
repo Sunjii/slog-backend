@@ -1,16 +1,22 @@
-import {
-  BeforeInsert,
-  BeforeUpdate,
-  Column,
-  CreateDateColumn,
-  Entity,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { BeforeInsert, BeforeUpdate, Column, Entity, OneToMany } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { Field, InputType, ObjectType } from '@nestjs/graphql';
+import {
+  Field,
+  InputType,
+  ObjectType,
+  registerEnumType,
+} from '@nestjs/graphql';
 import { InternalServerErrorException } from '@nestjs/common';
-import { IsEmail, IsString } from 'class-validator';
+import { IsEmail, IsEnum, IsString } from 'class-validator';
 import { CoreEntity } from 'src/common/entities/core.entity';
+import { PostEntity } from 'src/post/entities/post.entity';
+
+export enum UserRole {
+  Owner = 'Owner',
+  Visitor = 'Visitor',
+  Admin = 'Admin',
+}
+registerEnumType(UserRole, { name: 'UserRole' });
 
 @InputType({ isAbstract: true })
 @ObjectType()
@@ -30,6 +36,15 @@ export class UserEntity extends CoreEntity {
   @Field((type) => String)
   @IsString()
   password: string;
+
+  @Column({ type: 'enum', enum: UserRole })
+  @Field((type) => UserRole)
+  @IsEnum(UserRole)
+  role: UserRole;
+
+  @Field((type) => PostEntity)
+  @OneToMany((type) => PostEntity, (post) => post.user)
+  post: PostEntity[];
 
   @BeforeInsert()
   @BeforeUpdate()

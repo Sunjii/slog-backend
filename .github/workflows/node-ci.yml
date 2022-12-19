@@ -16,7 +16,6 @@ jobs:
     strategy:
       matrix:
         node-version: [18.x]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     # actions/checkout: Github의 마지막 커밋으로 체크아웃한다
     # actions/setup-node: Node.js를 설치한다
@@ -33,7 +32,9 @@ jobs:
       - run: npm run lint
       - name: Run tests and collect coverage
         run: npm run test:cov
+      # Codecov
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+          file: ../coverage/clover.xml

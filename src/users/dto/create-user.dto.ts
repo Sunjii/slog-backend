@@ -8,6 +8,7 @@ export class CreateUserInput extends PickType(UserEntity, [
   'username',
   'email',
   'password',
+  'role',
 ]) {}
 
 @ObjectType()
