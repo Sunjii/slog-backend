@@ -16,19 +16,23 @@ export class UsersService {
   ) {}
 
   async createUser(createUserDto: CreateUserInput) {
-    const { username, email, password, role } = createUserDto;
+    try {
+      const { username, email, password, role } = createUserDto;
 
-    const exist = await this.users.findOneBy({ email });
-    if (exist) {
-      return { ok: false, error: '이미 가입된 이메일입니다.' };
+      const exist = await this.users.findOneOrFail({ where: { email } });
+      if (exist) {
+        return { ok: false, error: '이미 가입된 이메일입니다.' };
+      }
+
+      const user = await this.users.save(
+        this.users.create({ email, password, username, role }),
+      );
+      // verification ?
+
+      return { ok: true, message: 'Done!' };
+    } catch (e) {
+      return { ok: false, error: '계정 생성 실패!' };
     }
-
-    const user = await this.users.save(
-      this.users.create({ email, password, username, role }),
-    );
-    // verification ?
-
-    return { ok: true, message: 'Done!' };
   }
 
   async findOne(id: number): Promise<UserProfileOutput> {
@@ -46,7 +50,7 @@ export class UsersService {
     } catch (e) {
       return {
         ok: false,
-        error: 'User Not Found',
+        error: '계정을 찾을 수 없습니다.',
       };
     }
   }

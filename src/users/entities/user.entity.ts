@@ -1,12 +1,4 @@
-import {
-  BeforeInsert,
-  BeforeUpdate,
-  Column,
-  CreateDateColumn,
-  Entity,
-  OneToMany,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { BeforeInsert, BeforeUpdate, Column, Entity, OneToMany } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import {
   Field,
