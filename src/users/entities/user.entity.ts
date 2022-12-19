@@ -9,25 +9,26 @@ import {
 import * as bcrypt from 'bcrypt';
 import { Field, InputType, ObjectType } from '@nestjs/graphql';
 import { InternalServerErrorException } from '@nestjs/common';
+import { IsEmail, IsString } from 'class-validator';
+import { CoreEntity } from 'src/common/entities/core.entity';
 
 @InputType({ isAbstract: true })
 @ObjectType()
 @Entity()
-export class UserEntity {
-  @PrimaryGeneratedColumn()
-  @Field((type) => String)
-  id: number;
-
+export class UserEntity extends CoreEntity {
   @Column({ length: 32 })
   @Field((type) => String)
+  @IsString()
   username: string;
 
   @Column({ unique: true })
   @Field((type) => String)
+  @IsEmail()
   email: string;
 
   @Column({ select: false })
   @Field((type) => String)
+  @IsString()
   password: string;
 
   @BeforeInsert()
@@ -51,12 +52,4 @@ export class UserEntity {
       throw new InternalServerErrorException();
     }
   }
-
-  @CreateDateColumn()
-  @Field((type) => Date)
-  createdAt: Date;
-
-  @CreateDateColumn()
-  @Field((type) => Date)
-  updatedAt: Date;
 }

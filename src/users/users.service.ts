@@ -33,8 +33,11 @@ export class UsersService {
 
   async findOne(id: number): Promise<UserProfileOutput> {
     try {
-      const user = await this.users.findOneByOrFail({ id });
-      console.log(user);
+      const user = await this.users.findOne({
+        where: {
+          id: id,
+        },
+      });
       return {
         ok: true,
         user,
