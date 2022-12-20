@@ -43,7 +43,7 @@ export class UserEntity extends CoreEntity {
   role: UserRole;
 
   @Field((type) => PostEntity)
-  @OneToMany((type) => PostEntity, (post) => post.user)
+  @OneToMany((type) => PostEntity, (post) => post.userId)
   post: PostEntity[];
 
   @BeforeInsert()

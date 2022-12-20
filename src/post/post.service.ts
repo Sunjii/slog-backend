@@ -5,7 +5,7 @@ import { Repository } from 'typeorm';
 import { AllPostsInput, AllPostsOutput } from './dto/all-posts.dto';
 import { CreatePostInput, CreatePostOutput } from './dto/create-post.input';
 import { PostOutput } from './dto/post-output.dto';
-import { UpdatePostInput } from './dto/update-post.input';
+import { UpdatePostInput, UpdatePostOutput } from './dto/update-post.input';
 import { PostEntity } from './entities/post.entity';
 
 const PAGENATION = 5;
@@ -26,7 +26,7 @@ export class PostService {
       }
 
       const newPost = this.posts.create(createPostInput);
-      newPost.user = user;
+      newPost.userId = user.id;
 
       await this.posts.save(newPost);
       return {
@@ -80,8 +80,45 @@ export class PostService {
     }
   }
 
-  update(id: number, updatePostInput: UpdatePostInput) {
-    return `This action updates a #${id} post`;
+  async update(
+    user: UserEntity,
+    updatePostInput: UpdatePostInput,
+  ): Promise<UpdatePostOutput> {
+    try {
+      // find post
+      const post = await this.posts.findOne({
+        where: { id: updatePostInput.id },
+      });
+      if (!post) {
+        return {
+          ok: false,
+          error: '포스트를 찾을 수 없습니다.',
+        };
+      }
+
+      if (user.id !== post.userId) {
+        return {
+          ok: false,
+          error: '수정할 권한이 없습니다.',
+        };
+      }
+
+      await this.posts.save([
+        {
+          id: updatePostInput.id,
+          ...updatePostInput,
+        },
+      ]);
+
+      return {
+        ok: true,
+      };
+    } catch (e) {
+      return {
+        ok: false,
+        error: '포스트 수정 실패!',
+      };
+    }
   }
 
   remove(id: number) {

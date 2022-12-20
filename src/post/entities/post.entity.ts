@@ -12,6 +12,9 @@ export class PostEntity extends CoreEntity {
   @ManyToOne((type) => UserEntity, (user) => user.post)
   user: UserEntity;
 
+  @RelationId((post: PostEntity) => post.user)
+  userId: number;
+
   @Field((type) => String)
   @Column()
   @IsString()
