@@ -4,6 +4,7 @@ import { UserEntity } from 'src/users/entities/user.entity';
 import { Repository } from 'typeorm';
 import { AllPostsInput, AllPostsOutput } from './dto/all-posts.dto';
 import { CreatePostInput, CreatePostOutput } from './dto/create-post.input';
+import { DeletePostInput, DeletePostOutput } from './dto/delete-post.dto';
 import { PostOutput } from './dto/post-output.dto';
 import { UpdatePostInput, UpdatePostOutput } from './dto/update-post.input';
 import { PostEntity } from './entities/post.entity';
@@ -121,7 +122,35 @@ export class PostService {
     }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} post`;
+  async remove(
+    user: UserEntity,
+    { postId }: DeletePostInput,
+  ): Promise<DeletePostOutput> {
+    try {
+      const post = await this.posts.findOne({ where: { id: postId } });
+      if (!post) {
+        return {
+          ok: false,
+          error: '포스트를 찾을 수 없습니다.',
+        };
+      }
+
+      if (user.id !== post.userId) {
+        return {
+          ok: false,
+          error: '삭제할 권한이 없습니다.',
+        };
+      }
+
+      await this.posts.delete(postId);
+      return {
+        ok: true,
+      };
+    } catch (e) {
+      return {
+        ok: false,
+        error: '삭제 실패',
+      };
+    }
   }
 }

@@ -8,6 +8,7 @@ import { AllPostsInput, AllPostsOutput } from './dto/all-posts.dto';
 import { UserEntity } from 'src/users/entities/user.entity';
 import { AuthUser } from 'src/auth/auth-user.decorator';
 import { Role } from 'src/auth/role.decorator';
+import { DeletePostInput, DeletePostOutput } from './dto/delete-post.dto';
 
 @Resolver((of) => PostEntity)
 export class PostResolver {
@@ -45,8 +46,12 @@ export class PostResolver {
     return this.postService.update(authUser, updatePostInput);
   }
 
-  // @Mutation(() => PostEntity)
-  // removePost(@Args('id', { type: () => Int }) id: number) {
-  //   return this.postService.remove(id);
-  // }
+  @Mutation(() => DeletePostOutput)
+  @Role(['Owner', 'Admin'])
+  removePost(
+    @AuthUser() authUser: UserEntity,
+    @Args('input') deletePostInput: DeletePostInput,
+  ): Promise<DeletePostOutput> {
+    return this.postService.remove(authUser, deletePostInput);
+  }
 }
