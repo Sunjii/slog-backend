@@ -13,6 +13,7 @@ export const mockRepository = () => ({
   create: jest.fn(),
   findOneOrFail: jest.fn(),
   delete: jest.fn(),
+  findAndCount: jest.fn(),
 });
 
 export const mockJwtService = () => ({
