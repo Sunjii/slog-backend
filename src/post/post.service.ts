@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from 'src/users/entities/user.entity';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import { AllPostsInput, AllPostsOutput } from './dto/all-posts.dto';
 import { CreatePostInput, CreatePostOutput } from './dto/create-post.input';
 import { DeletePostInput, DeletePostOutput } from './dto/delete-post.dto';
 import { PostOutput } from './dto/post-output.dto';
+import { SearchPostInput, SearchPostOutput } from './dto/search-post.dto';
 import { UpdatePostInput, UpdatePostOutput } from './dto/update-post.input';
 import { PostEntity } from './entities/post.entity';
 
@@ -150,6 +151,30 @@ export class PostService {
       return {
         ok: false,
         error: '삭제 실패',
+      };
+    }
+  }
+
+  async search({ query, page }: SearchPostInput): Promise<SearchPostOutput> {
+    try {
+      const [posts, totalResults] = await this.posts.findAndCount({
+        where: {
+          title: ILike(`%${query}%`),
+        },
+        skip: (page - 1) * PAGENATION,
+        take: PAGENATION,
+      });
+
+      return {
+        ok: true,
+        searchingResults: posts,
+        totalResults,
+        totalPage: Math.ceil(totalResults / PAGENATION),
+      };
+    } catch (e) {
+      return {
+        ok: false,
+        error: '검색 실패',
       };
     }
   }

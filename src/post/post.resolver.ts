@@ -9,6 +9,7 @@ import { UserEntity } from 'src/users/entities/user.entity';
 import { AuthUser } from 'src/auth/auth-user.decorator';
 import { Role } from 'src/auth/role.decorator';
 import { DeletePostInput, DeletePostOutput } from './dto/delete-post.dto';
+import { SearchPostInput, SearchPostOutput } from './dto/search-post.dto';
 
 @Resolver((of) => PostEntity)
 export class PostResolver {
@@ -53,5 +54,12 @@ export class PostResolver {
     @Args('input') deletePostInput: DeletePostInput,
   ): Promise<DeletePostOutput> {
     return this.postService.remove(authUser, deletePostInput);
+  }
+
+  @Query((returns) => SearchPostOutput)
+  searchPost(
+    @Args('input') searchPostInput: SearchPostInput,
+  ): Promise<SearchPostOutput> {
+    return this.postService.search(searchPostInput);
   }
 }
