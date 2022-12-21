@@ -1,5 +1,5 @@
-import { ObjectType, Field, Int, InputType } from '@nestjs/graphql';
-import { IsString } from 'class-validator';
+import { ObjectType, Field, InputType } from '@nestjs/graphql';
+import { IsNumber, IsString } from 'class-validator';
 import { CoreEntity } from 'src/common/entities/core.entity';
 import { UserEntity } from 'src/users/entities/user.entity';
 import { Column, Entity, ManyToOne, RelationId } from 'typeorm';
@@ -8,13 +8,6 @@ import { Column, Entity, ManyToOne, RelationId } from 'typeorm';
 @ObjectType()
 @Entity()
 export class PostEntity extends CoreEntity {
-  @Field((type) => UserEntity)
-  @ManyToOne((type) => UserEntity, (user) => user.post)
-  user: UserEntity;
-
-  @RelationId((post: PostEntity) => post.user)
-  userId: number;
-
   @Field((type) => String)
   @Column()
   @IsString()
@@ -24,4 +17,19 @@ export class PostEntity extends CoreEntity {
   @Column()
   @IsString()
   content: string;
+
+  @Field((type) => UserEntity)
+  @ManyToOne((type) => UserEntity, {
+    onDelete: 'CASCADE',
+  })
+  user: Promise<UserEntity>;
+
+  @Column()
+  @RelationId((post: PostEntity) => post.user)
+  userId: number;
+
+  @Field((type) => Number)
+  @Column({ default: 0 })
+  @IsNumber()
+  readCount: number;
 }

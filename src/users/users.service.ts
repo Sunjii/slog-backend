@@ -19,7 +19,7 @@ export class UsersService {
     try {
       const { username, email, password, role } = createUserDto;
 
-      const exist = await this.users.findOneOrFail({ where: { email } });
+      const exist = await this.users.findOne({ where: { email } });
       if (exist) {
         return { ok: false, error: '이미 가입된 이메일입니다.' };
       }
@@ -31,7 +31,7 @@ export class UsersService {
 
       return { ok: true, message: 'Done!' };
     } catch (e) {
-      return { ok: false, error: '계정 생성 실패!' };
+      return { ok: false, error: `계정 생성 실패!` };
     }
   }
 
