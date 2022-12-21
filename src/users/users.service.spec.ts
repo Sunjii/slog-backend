@@ -56,7 +56,7 @@ describe('UsersService', () => {
       role: UserRole.Admin,
     };
     it('should fail if user exists', async () => {
-      usersRepository.findOneOrFail.mockResolvedValue({
+      usersRepository.findOne.mockResolvedValue({
         id: 1,
         email: 'test@email.com',
       });
@@ -81,7 +81,7 @@ describe('UsersService', () => {
     });
 
     it('should fail on exception', async () => {
-      usersRepository.findOneOrFail.mockRejectedValue(new Error());
+      usersRepository.findOne.mockRejectedValue(new Error());
       const result = await service.createUser(createAccountArgs);
 
       expect(result).toEqual({ ok: false, error: '계정 생성 실패!' });
