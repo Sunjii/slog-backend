@@ -29,7 +29,7 @@ describe('PostService', () => {
     postsRepository = module.get(getRepositoryToken(PostEntity));
     jwtService = module.get<JwtService>(JwtService);
 
-    postsRepository.create({ id: 1, title: 'Title', content: 'Content' });
+    //postsRepository.create({ id: 1, title: 'Title', content: 'Content' });
   });
 
   const createPostArgs = {
@@ -75,11 +75,11 @@ describe('PostService', () => {
       page: 1,
     };
 
-    it('should fail no result', async () => {
-      postsRepository.findOneOrFail.mockRejectedValue(findAllArgs);
+    it('should fail on exception', async () => {
+      postsRepository.findOneOrFail.mockRejectedValue(new Error());
       const result = await service.findAll(findAllArgs);
 
-      expect(result).toEqual({ ok: false, error: '포스트가 하나도 없습니다.' });
+      expect(result).toEqual({ ok: false, error: 'FindAll 호출 실패' });
     });
 
     it('should find all post', async () => {
@@ -110,20 +110,47 @@ describe('PostService', () => {
 
       // TODO: Insert Dummy Data
 
-      //postsRepository.findAndCount.mockResolvedValue(findAllArgs);
-      postsRepository.findAndCount.mockImplementation(() =>
-        Promise.resolve({
-          id: 1,
-          title: 'Title',
-          content: 'Content',
-          userId: 1,
-        }),
-      );
-      const result = await service.findAll(findAllArgs);
+      // postsRepository.findAndCount.mockReturnValue({
+      //   id: 1,
+      //   title: 'Title',
+      //   content: 'Content',
+      //   userId: 1,
+      // });
 
-      console.log(postsRepository);
+      const mockPosts = {
+        ok: true,
+        posts: [
+          {
+            id: 1,
+            title: 'test',
+            content: 'content',
+            userId: 1,
+            readCount: 0,
+          },
+        ],
+        totalPage: 0,
+        totalResults: 0,
+      };
 
-      expect(result).toEqual({ ok: true, posts: findAllArgs });
+      postsRepository.findAndCount.mockImplementation(() => {
+        return mockPosts;
+      });
+
+      //postsRepository.findAndCount.mockReturnValue(mockPosts);
+      //postsRepository.findAndCount.mockResolvedValue(mockPosts);
+
+      console.log(postsRepository.findAndCount());
+      console.log(await service.findAll({ page: 1 }));
+
+      const result = await service.findAll({ page: 1 });
+      console.log(result);
+
+      expect(result).toEqual({
+        ok: true,
+        posts: [],
+        totalPage: 0,
+        totalResults: 0,
+      });
     });
   });
 });

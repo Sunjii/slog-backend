@@ -3,11 +3,16 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from 'src/users/entities/user.entity';
 import { ILike, Repository } from 'typeorm';
 import { AllPostsInput, AllPostsOutput } from './dto/all-posts.dto';
+import {
+  CreateCommentInput,
+  CreateCommentOutput,
+} from './dto/create-comment.dto';
 import { CreatePostInput, CreatePostOutput } from './dto/create-post.input';
 import { DeletePostInput, DeletePostOutput } from './dto/delete-post.dto';
 import { PostOutput } from './dto/post-output.dto';
 import { SearchPostInput, SearchPostOutput } from './dto/search-post.dto';
 import { UpdatePostInput, UpdatePostOutput } from './dto/update-post.input';
+import { CommentEntity } from './entities/comment.entity';
 import { PostEntity } from './entities/post.entity';
 
 const PAGENATION = 5;
@@ -16,6 +21,8 @@ export class PostService {
   constructor(
     @InjectRepository(PostEntity)
     private readonly posts: Repository<PostEntity>,
+    @InjectRepository(CommentEntity)
+    private readonly comments: Repository<CommentEntity>,
   ) {}
 
   async create(
@@ -23,10 +30,6 @@ export class PostService {
     createPostInput: CreatePostInput,
   ): Promise<CreatePostOutput> {
     try {
-      if (user === undefined) {
-        throw new Error('작성자 정보가 없습니다');
-      }
-
       const newPost = this.posts.create(createPostInput);
       newPost.userId = user.id;
 
@@ -35,12 +38,24 @@ export class PostService {
         ok: true,
       };
     } catch (e) {
-      return { ok: false, error: `포스트 작성 실패 ${e}` };
+      return { ok: false, error: `포스트 작성 실패` };
     }
   }
 
   async findAll({ page }: AllPostsInput): Promise<AllPostsOutput> {
     try {
+      // const result = await this.posts.findAndCount({
+      //   skip: (page - 1) * PAGENATION,
+      //   take: PAGENATION,
+      //   order: {
+      //     createAt: 'DESC',
+      //   },
+      // });
+      // console.log(result);
+
+      console.log(page, PAGENATION);
+
+      // FIXME: unit test시 에러 발생함
       const [posts, totalResults] = await this.posts.findAndCount({
         skip: (page - 1) * PAGENATION,
         take: PAGENATION,
@@ -49,10 +64,6 @@ export class PostService {
         },
       });
 
-      if (posts.length === 0) {
-        throw new Error('');
-      }
-
       return {
         ok: true,
         posts,
@@ -60,9 +71,10 @@ export class PostService {
         totalResults,
       };
     } catch (e) {
+      console.log(e);
       return {
         ok: false,
-        error: '포스트가 하나도 없습니다.',
+        error: `FindAll 호출 실패`,
       };
     }
   }
@@ -175,6 +187,68 @@ export class PostService {
       return {
         ok: false,
         error: '검색 실패',
+      };
+    }
+  }
+
+  //
+  //
+  /** COMMENT */
+  //
+  //
+
+  async createComment(
+    user: UserEntity,
+    { content, postId, commenter, password }: CreateCommentInput,
+  ): Promise<CreateCommentOutput> {
+    try {
+      // 로그인 유저라면
+      if (!user) {
+        return {
+          ok: false,
+          error: '잘못된 유저 정보입니다.',
+        };
+      }
+
+      const currentPost = await this.posts.findOne({ where: { id: postId } });
+      if (!currentPost) {
+        return {
+          ok: false,
+          error: '포스트 정보가 없습니다.',
+        };
+      }
+
+      if (currentPost) {
+        const newComment = await this.comments.create({
+          content,
+          postId,
+          commenter,
+          password,
+        });
+        newComment.userId = user.id;
+        newComment.vote = 0;
+
+        await this.comments.save(newComment);
+        return {
+          ok: true,
+        };
+      } else {
+        return {
+          ok: false,
+          error: '잘못된 포스트 혹은 댓글 정보입니다.',
+        };
+      }
+
+      // 비로그인 유저의 경우
+
+      return {
+        ok: true,
+      };
+    } catch (e) {
+      console.log(e);
+      return {
+        ok: false,
+        error: '코멘트 작성 실패',
       };
     }
   }

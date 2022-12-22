@@ -10,6 +10,7 @@ import { JwtModule } from './jwt/jwt.module';
 import { PostModule } from './post/post.module';
 import { PostEntity } from './post/entities/post.entity';
 import { AuthModule } from './auth/auth.module';
+import { CommentEntity } from './post/entities/comment.entity';
 
 @Module({
   imports: [
@@ -21,7 +22,7 @@ import { AuthModule } from './auth/auth.module';
       username: 'postgres',
       password: '1234',
       database: 'slog',
-      entities: [UserEntity, PostEntity],
+      entities: [UserEntity, PostEntity, CommentEntity],
       logging: true,
       synchronize: true, // true: 수정된 칼럼, 타입 등등은 테이블을 drop시키고 다시 생성하도록 함
     }),
