@@ -7,6 +7,7 @@ import {
   mockRepository,
   MockRepository,
 } from 'src/users/users.service.spec';
+import { CommentEntity } from './entities/comment.entity';
 import { PostEntity } from './entities/post.entity';
 import { PostService } from './post.service';
 
@@ -15,19 +16,28 @@ describe('PostService', () => {
   let postsRepository: MockRepository<PostEntity>;
   let usersRepository: MockRepository<UserEntity>;
   let jwtService: JwtService;
+  let commentsRepository: MockRepository<CommentEntity>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         PostService,
-        { provide: getRepositoryToken(PostEntity), useValue: mockRepository() },
+        {
+          provide: getRepositoryToken(PostEntity),
+          useValue: mockRepository(),
+        },
         { provide: JwtService, useValue: mockJwtService() },
+        {
+          provide: getRepositoryToken(CommentEntity),
+          useValue: mockRepository(),
+        },
       ],
     }).compile();
 
     service = module.get<PostService>(PostService);
     postsRepository = module.get(getRepositoryToken(PostEntity));
     jwtService = module.get<JwtService>(JwtService);
+    commentsRepository = module.get(getRepositoryToken(CommentEntity));
 
     //postsRepository.create({ id: 1, title: 'Title', content: 'Content' });
   });
