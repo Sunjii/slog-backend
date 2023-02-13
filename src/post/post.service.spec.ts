@@ -297,5 +297,5 @@ describe('PostService', () => {
   //
   //
 
-  describe('Create comment', () => {});
+  //describe('Create comment', () => {});
 });
