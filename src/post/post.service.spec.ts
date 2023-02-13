@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { ILike } from 'typeorm';
 import { JwtService } from 'src/jwt/jwt.service';
 import { UserEntity, UserRole } from 'src/users/entities/user.entity';
 import {
@@ -251,7 +252,44 @@ describe('PostService', () => {
     });
   });
 
-  describe('Search post', () => {});
+  describe('Search post', () => {
+    const query = 'title';
+    it('should search post', async () => {
+      const findAndCountArgs = {
+        where: {
+          title: ILike(`%${query}%`),
+        },
+        skip: 0,
+        take: 5,
+      };
+
+      jest
+        .spyOn(postsRepository, 'findAndCount')
+        .mockImplementationOnce(async (findAndCountArgs) => [
+          { posts: [mockPost] },
+          1,
+        ]);
+
+      const result = await service.search({ query, page: 1 });
+
+      expect(postsRepository.findAndCount).toBeCalledTimes(1);
+      expect(postsRepository.findAndCount).toBeCalledWith(findAndCountArgs);
+      expect(result).toEqual({
+        ok: true,
+        searchingResults: { posts: [mockPost] },
+        totalResults: 1,
+        totalPage: 1,
+      });
+    });
+
+    it('should fail on exception', async () => {
+      postsRepository.findAndCount.mockRejectedValue(new Error());
+
+      const result = await service.search({ query, page: 1 });
+
+      expect(result).toEqual({ ok: false, error: '검색 실패' });
+    });
+  });
 
   //
   //
