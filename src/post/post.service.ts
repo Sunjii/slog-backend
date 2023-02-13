@@ -44,16 +44,20 @@ export class PostService {
 
   async findAll({ page }: AllPostsInput): Promise<AllPostsOutput> {
     try {
-      // const result = await this.posts.findAndCount({
+      // const [result, totalResults] = await this.posts.findAndCount({
       //   skip: (page - 1) * PAGENATION,
       //   take: PAGENATION,
       //   order: {
       //     createAt: 'DESC',
       //   },
       // });
-      // console.log(result);
 
-      console.log(page, PAGENATION);
+      // return {
+      //   ok: true,
+      //   posts: result,
+      //   totalPage: 1,
+      //   totalResults,
+      // };
 
       // FIXME: unit test시 에러 발생함
       const [posts, totalResults] = await this.posts.findAndCount({
@@ -71,7 +75,6 @@ export class PostService {
         totalResults,
       };
     } catch (e) {
-      console.log(e);
       return {
         ok: false,
         error: `FindAll 호출 실패`,
@@ -238,12 +241,6 @@ export class PostService {
           error: '잘못된 포스트 혹은 댓글 정보입니다.',
         };
       }
-
-      // 비로그인 유저의 경우
-
-      return {
-        ok: true,
-      };
     } catch (e) {
       console.log(e);
       return {

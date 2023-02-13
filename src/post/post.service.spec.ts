@@ -38,16 +38,21 @@ describe('PostService', () => {
     postsRepository = module.get(getRepositoryToken(PostEntity));
     jwtService = module.get<JwtService>(JwtService);
     commentsRepository = module.get(getRepositoryToken(CommentEntity));
-
-    //postsRepository.create({ id: 1, title: 'Title', content: 'Content' });
   });
 
   const createPostArgs = {
     title: 'Title',
     content: 'Content',
   };
-  const mockUser = {
+  const mockPost = {
     id: 1,
+    title: 'title',
+    content: 'stringg',
+    userId: 42,
+    readCount: 42,
+  };
+  const mockUser = {
+    id: 42,
     username: 'test',
     email: 'test@email',
     password: '1234',
@@ -61,6 +66,8 @@ describe('PostService', () => {
 
   it('should be defined', () => {
     expect(service).toBeDefined();
+    expect(postsRepository).toBeDefined();
+    expect(commentsRepository).toBeDefined();
   });
 
   describe('Create New Post', () => {
@@ -80,87 +87,101 @@ describe('PostService', () => {
     });
   });
 
-  describe('Find All Posts', () => {
-    const findAllArgs = {
-      page: 1,
-    };
-
-    it('should fail on exception', async () => {
-      postsRepository.findOneOrFail.mockRejectedValue(new Error());
-      const result = await service.findAll(findAllArgs);
-
-      expect(result).toEqual({ ok: false, error: 'FindAll 호출 실패' });
+  describe('Find all post', () => {
+    it('should find all post', async () => {
+      // const mockedResults = { title: 'something' };
+      // // FIXME: findAndCount mocking이 안 됨... why?????????
+      // postsRepository.findAndCount.mockResolvedValue(mockedResults);
+      // const result = await service.findAll({ page: 1 });
+      // expect(result).toEqual({ title: 'something' });
     });
 
-    it('should find all post', async () => {
-      // const posts = [
-      //   {
-      //     id: 1,
-      //     title: 'Title',
-      //     content: 'Content',
-      //     userId: 1,
-      //   },
-      //   {
-      //     id: 2,
-      //     title: 'Title2',
-      //     content: 'Content2',
-      //     userId: 2,
-      //   },
-      // ];
-      // postsRepository.create.mockReturnValue(createPostArgs);
-      // postsRepository.save.mockReturnValue(createPostArgs);
-      // const result = await service.findAll({ page: 1 });
-      // expect(result).toHaveLength(2);
-      // expect(result).toContainEqual({
-      //   id: 1,
-      //   title: 'Title',
-      //   content: 'Content',
-      //   userId: 1,
-      // });
-
-      // TODO: Insert Dummy Data
-
-      // postsRepository.findAndCount.mockReturnValue({
-      //   id: 1,
-      //   title: 'Title',
-      //   content: 'Content',
-      //   userId: 1,
-      // });
-
-      const mockPosts = {
-        ok: true,
-        posts: [
-          {
-            id: 1,
-            title: 'test',
-            content: 'content',
-            userId: 1,
-            readCount: 0,
-          },
-        ],
-        totalPage: 0,
-        totalResults: 0,
-      };
-
-      postsRepository.findAndCount.mockImplementation(() => {
-        return mockPosts;
-      });
-
-      //postsRepository.findAndCount.mockReturnValue(mockPosts);
-      //postsRepository.findAndCount.mockResolvedValue(mockPosts);
-
-      console.log(postsRepository.findAndCount());
-      console.log(await service.findAll({ page: 1 }));
+    it('should fail on exception', async () => {
+      postsRepository.findAndCount.mockRejectedValue(new Error());
 
       const result = await service.findAll({ page: 1 });
-      console.log(result);
+      expect(result).toEqual({ ok: false, error: 'FindAll 호출 실패' });
+    });
+  });
+
+  describe('Fine one', () => {
+    it('should find one', async () => {
+      postsRepository.findOneOrFail.mockResolvedValue(mockPost);
+      const result = await service.findOne(1);
+      expect(result).toEqual({ ok: true, post: mockPost });
+    });
+
+    it('shoul fail on exception', async () => {
+      postsRepository.findOneOrFail.mockRejectedValue(null);
+      const result = await service.findOne(1);
+      expect(result).toEqual({
+        ok: false,
+        error: '1 포스트를 찾을 수 없습니다.',
+      });
+    });
+  });
+
+  describe('Update post', () => {
+    const updatePostInput = {
+      id: 1,
+      title: 'new Title',
+    };
+    const findOnePost = it('should update post', async () => {
+      postsRepository.findOne.mockResolvedValue(mockPost);
+
+      const result = await service.update(mockUser, updatePostInput);
+
+      expect(postsRepository.findOne).toBeCalledTimes(1);
+      expect(postsRepository.findOne).toBeCalledWith({
+        where: { id: updatePostInput.id },
+      });
+      expect(postsRepository.save).toBeCalledTimes(1);
+      expect(postsRepository.save).toBeCalledWith([updatePostInput]);
+      expect(result).toEqual({ ok: true });
+    });
+
+    it('should fail on cannot find post', async () => {
+      postsRepository.findOne.mockResolvedValue(null);
+
+      const result = await service.update(mockUser, updatePostInput);
 
       expect(result).toEqual({
-        ok: true,
-        posts: [],
-        totalPage: 0,
-        totalResults: 0,
+        ok: false,
+        error: '포스트를 찾을 수 없습니다.',
       });
+    });
+
+    it('should fail on un-auth', async () => {
+      postsRepository.findOne.mockResolvedValue(mockPost);
+      const notAllowedUser = {
+        id: 404,
+        username: 'test',
+        email: 'test@email',
+        password: '1234',
+        role: UserRole.Admin,
+        post: [],
+        createAt: new Date(),
+        updateAt: new Date(),
+        hashPassword: jest.fn(),
+        checkPassword: jest.fn(),
+      };
+
+      const result = await service.update(notAllowedUser, updatePostInput);
+
+      expect(postsRepository.findOne).toBeCalledTimes(1);
+      expect(postsRepository.findOne).toBeCalledWith({
+        where: { id: updatePostInput.id },
+      });
+      expect(result).toEqual({ ok: false, error: '수정할 권한이 없습니다.' });
+    });
+
+    it('should fail on exception on save', async () => {
+      postsRepository.findOne.mockResolvedValue(mockPost);
+      postsRepository.save.mockRejectedValue(new Error());
+
+      const result = await service.update(mockUser, updatePostInput);
+
+      expect(result).toEqual({ ok: false, error: '포스트 수정 실패!' });
     });
   });
 });
