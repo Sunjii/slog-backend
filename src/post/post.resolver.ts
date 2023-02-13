@@ -14,6 +14,7 @@ import {
   CreateCommentInput,
   CreateCommentOutput,
 } from './dto/create-comment.dto';
+import { GetCommentsInput, GetCommentsOutput } from './dto/get-comments.dto';
 
 @Resolver((of) => PostEntity)
 export class PostResolver {
@@ -80,5 +81,12 @@ export class PostResolver {
     @Args('createCommentInput') createCommentInput: CreateCommentInput,
   ): Promise<CreateCommentOutput> {
     return this.postService.createComment(authUser, createCommentInput);
+  }
+
+  @Query((returns) => GetCommentsOutput)
+  getComments(
+    @Args('getCommentsInput') getCommentsInput: GetCommentsInput,
+  ): Promise<GetCommentsOutput> {
+    return this.postService.getComments(getCommentsInput);
   }
 }

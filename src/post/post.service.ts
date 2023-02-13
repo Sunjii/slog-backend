@@ -9,6 +9,7 @@ import {
 } from './dto/create-comment.dto';
 import { CreatePostInput, CreatePostOutput } from './dto/create-post.input';
 import { DeletePostInput, DeletePostOutput } from './dto/delete-post.dto';
+import { GetCommentsInput, GetCommentsOutput } from './dto/get-comments.dto';
 import { PostOutput } from './dto/post-output.dto';
 import { SearchPostInput, SearchPostOutput } from './dto/search-post.dto';
 import { UpdatePostInput, UpdatePostOutput } from './dto/update-post.input';
@@ -44,7 +45,6 @@ export class PostService {
 
   async findAll({ page }: AllPostsInput): Promise<AllPostsOutput> {
     try {
-      // FIXME: unit test시 에러 발생함
       const findAndCountArgs = {
         skip: (page - 1) * PAGENATION,
         take: PAGENATION,
@@ -189,6 +189,7 @@ export class PostService {
   //
   //
 
+  // TODO: null로 쿼리 처리가 안 되니까 비회원 댓글 기능은 별도 api로 분리해야할듯
   async createComment(
     user: UserEntity,
     { content, postId, commenter, password }: CreateCommentInput,
@@ -237,5 +238,38 @@ export class PostService {
         error: '코멘트 작성 실패',
       };
     }
+  }
+
+  async getComments({ postId }: GetCommentsInput): Promise<GetCommentsOutput> {
+    const findAndCountArgs = {
+      // TODO: comments에도 페지네이션?
+      // skip: (page - 1) * PAGENATION,
+      // take: PAGENATION,
+      order: {
+        createAt: 'DESC',
+      },
+      where: {
+        postId,
+      },
+    } as FindManyOptions<CommentEntity>;
+
+    const currentPost = await this.posts.findOne({ where: { id: postId } });
+    if (!currentPost) {
+      return {
+        ok: false,
+        error: '포스트가 없습니다.',
+      };
+    }
+
+    const [comments, totalResults] = await this.comments.findAndCount(
+      findAndCountArgs,
+    );
+
+    return {
+      ok: true,
+      comments,
+      totalPage: 42,
+      totalResults,
+    };
   }
 }
