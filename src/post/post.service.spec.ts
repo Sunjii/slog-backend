@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { ILike } from 'typeorm';
 import { JwtService } from 'src/jwt/jwt.service';
 import { UserEntity, UserRole } from 'src/users/entities/user.entity';
 import {
@@ -63,6 +64,18 @@ describe('PostService', () => {
     hashPassword: jest.fn(),
     checkPassword: jest.fn(),
   };
+  const notAllowedUser = {
+    id: 404,
+    username: 'test',
+    email: 'test@email',
+    password: '1234',
+    role: UserRole.Admin,
+    post: [],
+    createAt: new Date(),
+    updateAt: new Date(),
+    hashPassword: jest.fn(),
+    checkPassword: jest.fn(),
+  };
 
   it('should be defined', () => {
     expect(service).toBeDefined();
@@ -89,11 +102,32 @@ describe('PostService', () => {
 
   describe('Find all post', () => {
     it('should find all post', async () => {
-      // const mockedResults = { title: 'something' };
-      // // FIXME: findAndCount mocking이 안 됨... why?????????
-      // postsRepository.findAndCount.mockResolvedValue(mockedResults);
-      // const result = await service.findAll({ page: 1 });
-      // expect(result).toEqual({ title: 'something' });
+      const findAndCountArgs = {
+        skip: 0,
+        take: 5,
+        order: {
+          createAt: 'DESC',
+        },
+      };
+
+      jest
+        .spyOn(postsRepository, 'findAndCount')
+        .mockImplementationOnce(async (findAndCountArgs) => [
+          { posts: [mockPost] },
+          1,
+        ]);
+
+      const result = await service.findAll({ page: 1 });
+
+      expect(postsRepository.findAndCount).toBeCalledTimes(1);
+      expect(postsRepository.findAndCount).toBeCalledWith(findAndCountArgs);
+
+      expect(result).toEqual({
+        ok: true,
+        posts: { posts: [mockPost] },
+        totalPage: 1,
+        totalResults: 1,
+      });
     });
 
     it('should fail on exception', async () => {
@@ -153,18 +187,6 @@ describe('PostService', () => {
 
     it('should fail on un-auth', async () => {
       postsRepository.findOne.mockResolvedValue(mockPost);
-      const notAllowedUser = {
-        id: 404,
-        username: 'test',
-        email: 'test@email',
-        password: '1234',
-        role: UserRole.Admin,
-        post: [],
-        createAt: new Date(),
-        updateAt: new Date(),
-        hashPassword: jest.fn(),
-        checkPassword: jest.fn(),
-      };
 
       const result = await service.update(notAllowedUser, updatePostInput);
 
@@ -184,4 +206,96 @@ describe('PostService', () => {
       expect(result).toEqual({ ok: false, error: '포스트 수정 실패!' });
     });
   });
+
+  describe('Remove post', () => {
+    it('should remove post', async () => {
+      postsRepository.findOne.mockResolvedValue(mockPost);
+
+      const result = await service.remove(mockUser, { postId: 1 });
+
+      expect(postsRepository.findOne).toBeCalledTimes(1);
+      expect(postsRepository.findOne).toBeCalledWith({ where: { id: 1 } });
+      expect(postsRepository.delete).toBeCalledTimes(1);
+      expect(postsRepository.delete).toBeCalledWith(1);
+      expect(result).toEqual({ ok: true });
+    });
+
+    it('should fail cannot found post', async () => {
+      postsRepository.findOne.mockResolvedValue(null);
+
+      const result = await service.remove(mockUser, { postId: 1 });
+
+      expect(postsRepository.findOne).toBeCalledTimes(1);
+      expect(postsRepository.findOne).toBeCalledWith({ where: { id: 1 } });
+      expect(result).toEqual({
+        ok: false,
+        error: '포스트를 찾을 수 없습니다.',
+      });
+    });
+
+    it('should fail by non-auth', async () => {
+      postsRepository.findOne.mockResolvedValue(mockPost);
+
+      const result = await service.remove(notAllowedUser, { postId: 1 });
+
+      expect(postsRepository.findOne).toBeCalledTimes(1);
+      expect(postsRepository.findOne).toBeCalledWith({ where: { id: 1 } });
+      expect(result).toEqual({ ok: false, error: '삭제할 권한이 없습니다.' });
+    });
+
+    it('should fail on exception', async () => {
+      postsRepository.findOne.mockRejectedValue(new Error());
+
+      const result = await service.remove(mockUser, { postId: 1 });
+
+      expect(result).toEqual({ ok: false, error: '삭제 실패' });
+    });
+  });
+
+  describe('Search post', () => {
+    const query = 'title';
+    it('should search post', async () => {
+      const findAndCountArgs = {
+        where: {
+          title: ILike(`%${query}%`),
+        },
+        skip: 0,
+        take: 5,
+      };
+
+      jest
+        .spyOn(postsRepository, 'findAndCount')
+        .mockImplementationOnce(async (findAndCountArgs) => [
+          { posts: [mockPost] },
+          1,
+        ]);
+
+      const result = await service.search({ query, page: 1 });
+
+      expect(postsRepository.findAndCount).toBeCalledTimes(1);
+      expect(postsRepository.findAndCount).toBeCalledWith(findAndCountArgs);
+      expect(result).toEqual({
+        ok: true,
+        searchingResults: { posts: [mockPost] },
+        totalResults: 1,
+        totalPage: 1,
+      });
+    });
+
+    it('should fail on exception', async () => {
+      postsRepository.findAndCount.mockRejectedValue(new Error());
+
+      const result = await service.search({ query, page: 1 });
+
+      expect(result).toEqual({ ok: false, error: '검색 실패' });
+    });
+  });
+
+  //
+  //
+  //  COMMENT
+  //
+  //
+
+  //describe('Create comment', () => {});
 });

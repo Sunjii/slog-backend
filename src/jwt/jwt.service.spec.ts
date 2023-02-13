@@ -44,12 +44,21 @@ describe('JwtService', () => {
   });
 
   describe('verify', () => {
+    const TOKEN = 'TOKEN';
     it('should return the decoded toekn', () => {
-      const TOKEN = 'TOKEN';
       const decoded = service.verify(TOKEN);
       expect(decoded).toEqual({ id: USER_ID });
       expect(jwt.verify).toHaveBeenCalledTimes(1);
       expect(jwt.verify).toHaveBeenCalledWith(TOKEN, TEST_KEY);
+    });
+    it('should fail on exception', () => {
+      // try-catch 해도 return false를 함
+      jest
+        .spyOn(jwt, 'verify')
+        .mockImplementationOnce((token: string) => false);
+
+      const result = service.verify(TOKEN);
+      expect(result).toEqual(false);
     });
   });
 });

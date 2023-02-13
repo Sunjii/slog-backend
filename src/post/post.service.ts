@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from 'src/users/entities/user.entity';
-import { ILike, Repository } from 'typeorm';
+import { FindManyOptions, ILike, Repository } from 'typeorm';
 import { AllPostsInput, AllPostsOutput } from './dto/all-posts.dto';
 import {
   CreateCommentInput,
@@ -44,29 +44,18 @@ export class PostService {
 
   async findAll({ page }: AllPostsInput): Promise<AllPostsOutput> {
     try {
-      // const [result, totalResults] = await this.posts.findAndCount({
-      //   skip: (page - 1) * PAGENATION,
-      //   take: PAGENATION,
-      //   order: {
-      //     createAt: 'DESC',
-      //   },
-      // });
-
-      // return {
-      //   ok: true,
-      //   posts: result,
-      //   totalPage: 1,
-      //   totalResults,
-      // };
-
       // FIXME: unit test시 에러 발생함
-      const [posts, totalResults] = await this.posts.findAndCount({
+      const findAndCountArgs = {
         skip: (page - 1) * PAGENATION,
         take: PAGENATION,
         order: {
           createAt: 'DESC',
         },
-      });
+      } as FindManyOptions<PostEntity>;
+
+      const [posts, totalResults] = await this.posts.findAndCount(
+        findAndCountArgs,
+      );
 
       return {
         ok: true,
