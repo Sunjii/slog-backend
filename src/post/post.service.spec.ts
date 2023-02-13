@@ -89,11 +89,32 @@ describe('PostService', () => {
 
   describe('Find all post', () => {
     it('should find all post', async () => {
-      // const mockedResults = { title: 'something' };
-      // // FIXME: findAndCount mocking이 안 됨... why?????????
-      // postsRepository.findAndCount.mockResolvedValue(mockedResults);
-      // const result = await service.findAll({ page: 1 });
-      // expect(result).toEqual({ title: 'something' });
+      const findAndCountArgs = {
+        skip: 0,
+        take: 5,
+        order: {
+          createAt: 'DESC',
+        },
+      };
+
+      jest
+        .spyOn(postsRepository, 'findAndCount')
+        .mockImplementationOnce(async (findAndCountArgs) => [
+          { posts: [mockPost] },
+          1,
+        ]);
+
+      const result = await service.findAll({ page: 1 });
+
+      expect(postsRepository.findAndCount).toBeCalledTimes(1);
+      expect(postsRepository.findAndCount).toBeCalledWith(findAndCountArgs);
+
+      expect(result).toEqual({
+        ok: true,
+        posts: { posts: [mockPost] },
+        totalPage: 1,
+        totalResults: 1,
+      });
     });
 
     it('should fail on exception', async () => {
