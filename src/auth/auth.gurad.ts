@@ -28,13 +28,10 @@ export class AuthGuard implements CanActivate {
 
     if (token) {
       const decoded = this.jwtService.verify(token.toString());
-      // console.log(typeof decoded); // string...
-      // console.log(decoded.hasOwnProperty('id')); // false...
+      console.log(decoded);
 
-      //if (typeof decoded === 'object' && decoded.hasOwnProperty('id')) {
-      if (decoded) {
+      if (typeof decoded === 'object' && decoded.hasOwnProperty('id')) {
         const { user } = await this.usersService.findOne(decoded['id']);
-        //console.log(user);
         if (!user) {
           return false;
         }

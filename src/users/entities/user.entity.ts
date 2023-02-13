@@ -42,9 +42,9 @@ export class UserEntity extends CoreEntity {
   @IsEnum(UserRole)
   role: UserRole;
 
-  @Field((type) => PostEntity)
-  @OneToMany((type) => PostEntity, (post) => post.user)
-  post: PostEntity[];
+  // @Field((type) => [PostEntity])
+  // @OneToMany((type) => PostEntity, (post) => post.userId)
+  // posts: PostEntity[];
 
   @BeforeInsert()
   @BeforeUpdate()

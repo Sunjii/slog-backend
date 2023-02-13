@@ -39,7 +39,7 @@ describe('JwtService', () => {
       const token = service.sign(USER_ID);
       expect(typeof token).toBe('string');
       expect(jwt.sign).toHaveBeenCalledTimes(1);
-      expect(jwt.sign).toHaveBeenCalledWith(USER_ID, TEST_KEY);
+      expect(jwt.sign).toHaveBeenCalledWith({ id: USER_ID }, TEST_KEY);
     });
   });
 

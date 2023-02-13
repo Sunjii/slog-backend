@@ -11,10 +11,15 @@ export class JwtService {
   ) {}
 
   sign(userId: number): string {
-    return jwt.sign(userId, this.options.privateKey);
+    return jwt.sign({ id: userId }, this.options.privateKey);
   }
 
   verify(token: string) {
-    return jwt.verify(token, this.options.privateKey);
+    try {
+      return jwt.verify(token, this.options.privateKey);
+    } catch (e) {
+      console.log(e);
+      return false;
+    }
   }
 }
